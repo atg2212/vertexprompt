@@ -1,7 +1,4 @@
 import os
-# from google.cloud import secretmanager
-
-# import vertexai.preview.generative_models as generative_models
 
 from google.genai import types
 from google import genai

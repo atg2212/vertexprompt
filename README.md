@@ -5,6 +5,7 @@ Powered by Vertex AI Gemini models & Streamlit. Hosted on Cloud Run.
 ### See the code in action [here](https://thepromptplayground.xyz/).
 
 ### Usage
+* In app.py, modify get_project_id function to return your project number
 * Deploy to Cloud Run
     * Modify deploy.sh:
         * Replace SERVICE_ACCOUNT_EMAIL with your own service account. 

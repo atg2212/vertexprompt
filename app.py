@@ -8,7 +8,6 @@ from system_prompts import *
 from system_prompts import SYSTEM_PROMPT
 from placeholders import *
 from system_prompts import *
-# import requests
 from meta_prompt import *
 from google.genai import types
 from fine_tune_prompt import *
@@ -65,18 +64,6 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune 
                                              "Compress Prompt / ",
                                              "Images"
                                              ])
-
-# tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune Prompt / ",
-#                                              "Run Prompt / ",
-#                                              "Agent Prompt / ",
-#                                              "Meta Prompt / ",
-#                                              "Zero to Few / ",
-#                                              "Chain of Thought / ",
-#                                              "D.A.R.E Prompting / ",
-#                                              "Compress Prompt / ",
-#                                              "System Prompt / ",
-#                                              "Images"
-#                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
