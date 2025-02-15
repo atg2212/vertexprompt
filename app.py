@@ -52,14 +52,14 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8 = st.tabs(["Fine-Tune Prompt / ",
                                              "Run Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
                                              "Zero to Few / ",
                                              "Chain of Thought / ",
-                                             "D.A.R.E Prompting / "
-                                             
+                                             "D.A.R.E Prompting / ",
+                                             "Compress Prompt / "
                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
@@ -337,16 +337,16 @@ with tab7:
                 st.text_area('Result', dare_result, height=250, max_chars=None, key=None)
             else:
                 st.markdown("Please enter a prompt.")   
-help_me=st.checkbox("Help Me Create D.A.R.E Artifacts")
-with st.form(key='dareassist',clear_on_submit=False):
-        
-        if help_me:
-            # st.write('Enter your prompt below and click the button')
-            user_input=st.text_input("Enter your prompt below and click the button:")
-            if st.form_submit_button(' D.A.R.E Artifacts',disabled=not (project_id)  or project_id=="Your Project ID"):
-                if user_input:
-                        with st.spinner('working on it...'):
-                            dare_artifacts_result = create_dare_artifacts(user_input)
-                        st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
-                else:
-                    st.markdown("Please enter a prompt.")                                                                 
+    help_me=st.checkbox("Help Me Create D.A.R.E Artifacts")
+    with st.form(key='dareassist',clear_on_submit=False):
+            
+            if help_me:
+                # st.write('Enter your prompt below and click the button')
+                user_input=st.text_input("Enter your prompt below and click the button:")
+                if st.form_submit_button(' D.A.R.E Artifacts',disabled=not (project_id)  or project_id=="Your Project ID"):
+                    if user_input:
+                            with st.spinner('working on it...'):
+                                dare_artifacts_result = create_dare_artifacts(user_input)
+                            st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
+                    else:
+                        st.markdown("Please enter a prompt.")                                                                 
