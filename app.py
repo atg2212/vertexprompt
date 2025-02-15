@@ -49,7 +49,7 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["Fine-Tune Prompt", "Run Prompt", "Agent Prompt"])
+tab1, tab2, tab3, tab4= st.tabs(["Fine-Tune Prompt", "Run Prompt", "Agent Prompt","Meta Prompt"])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
@@ -111,7 +111,6 @@ with tab2:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')                
-
 with tab3:
     
     def create_agent_prompt(user_input):
@@ -146,3 +145,32 @@ with tab3:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
+with tab4:
+    def create_meta_prompt(user_input):
+        response = client.models.generate_content(
+            model=model_name,
+            contents=user_input,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='metaprompt',clear_on_submit=False):
+    #Get the prompt from the user
+        prompt = st.text_area('Enter your prompt:',height=200, key=4,placeholder="")
+        
+        if st.form_submit_button('Meta-Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                TASK=prompt
+                with st.spinner('Generating meta-prompt...'):
+                    prompt = metaprompt.replace("{{TASK}}", TASK)
+                    assistant_partial = "<Inputs>"
+                    execution_result = create_meta_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')                

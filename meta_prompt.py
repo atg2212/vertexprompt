@@ -76,7 +76,7 @@ Thus, the format of your overall response should look like what's shown between 
 <example>
 <Relevant Quotes>
 <Quote> [1] "Company X reported revenue of $12 million in 2021." </Quote>
-<Quote> [2] "Almost 90% of revene came from widget sales, with gadget sales making up the remaining 10%." </Quote>
+<Quote> [2] "Almost 90% of revenue came from widget sales, with gadget sales making up the remaining 10%." </Quote>
 </Relevant Quotes>
 <Answer>
 [1] Company X earned $12 million.  [2] Almost 90% of it was from widget sales.
@@ -449,7 +449,7 @@ That concludes the examples. Now, here is the task for which I would like you to
 </Task>
 
 To write your instructions, follow THESE instructions:
-1. In <Inputs> tags, write down the barebones, minimal, nonoverlapping set of text input variable(s) the instructions will make reference to. (These are variable names, not specific instructions.) Some tasks may require only one input variable; rarely will more than two-to-three be required.
+1. In <Inputs> tags, write down the barebones, minimal, nonverlapping set of text input variable(s) the instructions will make reference to. (These are variable names, not specific instructions.) Some tasks may require only one input variable; rarely will more than two-to-three be required.
 2. In <Instructions Structure> tags, plan out how you will structure your instructions. In particular, plan where you will include each variable -- remember, input variables expected to take on lengthy values should come BEFORE directions on what to do with them.
 3. Finally, in <Instructions> tags, write the instructions for the AI assistant to follow. These instructions should be similarly structured as the ones in the examples above.
 
