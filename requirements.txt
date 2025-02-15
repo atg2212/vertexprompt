@@ -4,3 +4,4 @@ streamlit==1.42.0
 # google-cloud-aiplatform[preview]
 # google-cloud-secret-manager==2.21.1
 gptrim==0.1.6
+google-cloud-aiplatform==1.80.0

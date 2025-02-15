@@ -1,13 +1,14 @@
 import os
 import streamlit as st
+import vertexai
 from initialization import initialize_llm_vertex
-# from vertexai.preview.vision_models import Image, ImageGenerationModel
+from vertexai.preview.vision_models import Image, ImageGenerationModel
 from gptrim import trim
 from system_prompts import *
 from system_prompts import SYSTEM_PROMPT
 from placeholders import *
 from system_prompts import *
-import requests
+# import requests
 from meta_prompt import *
 from google.genai import types
 from fine_tune_prompt import *
@@ -15,6 +16,7 @@ from agent_prompt import *
 from google.genai.types import (GenerateContentConfig,)
 from dare_prompts import *
 from system_prompts import *
+from image_prompts import *
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -52,7 +54,7 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9 = st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune Prompt / ",
                                              "Run Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
@@ -60,7 +62,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9 = st.tabs(["Fine-Tune Prompt 
                                              "Chain of Thought / ",
                                              "D.A.R.E Prompting / ",
                                              "Compress Prompt / ",
-                                             "System Prompt / "
+                                             "System Prompt / ",
+                                             "Images"
                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
@@ -455,4 +458,82 @@ with tab9:
                     execution_result = create_system_prompt(prompt)
                 display_result(execution_result)
             else:
-                st.warning('Please enter a prompt before executing.')                                                                          
+                st.warning('Please enter a prompt before executing.')
+with tab10:
+    def GenerateImagePrompt(user_input):
+        system_prompt = GenerateImageSystemPrompt
+
+
+        prompt= """Please generate 2 prompt(s) about: {description}
+                """
+        
+        formatted_prompt = prompt.format(description=user_input)
+
+        generation_config = GenerateContentConfig(temperature=temperature,
+                                          top_p=top_p,
+                                          max_output_tokens=max_tokens,
+                                          system_instruction=system_prompt,
+                                          response_modalities = ["TEXT"],
+                                          safety_settings=safety_settings,
+                                    )
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+        
+        
+    
+    def GenerateImage(description,num_of_images):
+        try:
+            vertexai.init(project=project_id, location=region)
+
+            model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-002")
+            images = model.generate_images(
+            prompt=description,
+            # Optional:
+            number_of_images=num_of_images,
+            # seed=1,
+            )
+            return images
+        except:
+            ""
+    def display_images(images):
+        for image in images:
+            image.save(location="./gen-img1.png", include_generation_parameters=True)
+            st.image("./gen-img1.png",use_container_width="auto")
+   
+    
+    with st.form(key='prompt_magic10',clear_on_submit=False):
+        link="https://cloud.google.com/vertex-ai/docs/generative-ai/image/img-gen-prompt-guide"
+        desc="Write your prompt below, See help icon for a prompt guide: (Images will be generated using the Imagen3 model)"
+        description = st.text_area(desc,height=200,key=110,placeholder=GENERATE_IMAGES,help=link)
+                
+        col1, col2 = st.columns(2,gap="large")
+        with col1:
+        # with st.form(key='prompt_magic10',clear_on_submit=False):
+            num_of_prompts=st.number_input("How many prompts to generate",min_value=2,max_value=2,value=2)
+            if st.form_submit_button('Generate Prompt(s)',disabled=not (project_id)  or project_id=="Your Project ID"):
+                if description:
+                    with st.spinner('Generating Prompt(s)...'):
+                        improved_prompt = GenerateImagePrompt(description)
+                    st.markdown(improved_prompt)
+                else:
+                    st.markdown("No prompts generated. Please enter a valid prompt.")        
+    with st.form(key='prompt_magic1',clear_on_submit=False):
+        with col2:
+        # with st.form(key='prompt_magic1',clear_on_submit=False):                
+        
+            num_of_images=st.number_input("How many images to generate",min_value=2,max_value=2,value=2)
+            if st.form_submit_button('Generate Image(s)',disabled=not (project_id)  or project_id=="Your Project ID"):
+                if description:
+                    with st.spinner('Generating Image(s)...'):
+                        images = GenerateImage(description,num_of_images)
+                        if images:
+                            display_images(images)
+                        else:
+                           st.markdown("No images generated. Prompt was blocked.")     
+                else:
+                    st.markdown("No images generated. Please enter a valid prompt.")                                                                    
