@@ -12,6 +12,7 @@ from meta_prompt import *
 from google.genai import types
 from fine_tune_prompt import *
 from agent_prompt import *
+from google.genai.types import (GenerateContentConfig,)
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -49,7 +50,7 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4= st.tabs(["Fine-Tune Prompt", "Run Prompt", "Agent Prompt","Meta Prompt"])
+tab1, tab2, tab3, tab4, tab5= st.tabs(["Fine-Tune Prompt / ", "Run Prompt / ", "Agent Prompt / ","Meta Prompt / ","Zero to Few / "])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
@@ -173,4 +174,50 @@ with tab4:
                     execution_result = create_meta_prompt(prompt)
                 display_result(execution_result)
             else:
-                st.warning('Please enter a prompt before executing.')                
+                st.warning('Please enter a prompt before executing.')     
+with tab5:
+    
+    def zero_to_few_prompt(user_input):
+        system_prompt ="""
+                        You are an assistant designed to convert a zero-shot prompt into a few-shot prompt.
+        """
+
+
+        prompt= """The zero-shot prompt is: '{zero_shot_prompt}'. Please convert it into a few-shot prompt.
+                   Be as elaborate as possible. Make sure to include at least 3 examples.
+                """
+        
+        formatted_prompt = prompt.format(zero_shot_prompt=user_input)
+
+        generation_config = GenerateContentConfig(temperature=temperature,
+                                          top_p=top_p,
+                                          max_output_tokens=max_tokens,
+                                          system_instruction=system_prompt,
+                                          response_modalities = ["TEXT"],
+                                          safety_settings=safety_settings,
+                                    )
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='zero-to-few',clear_on_submit=False):
+    #Get the prompt from the user
+        prompt = st.text_area('Enter your prompt:',height=200, key=5,placeholder="")
+        
+        if st.form_submit_button('Zero to few',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating prompt with shots...'):
+                    execution_result = zero_to_few_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')                           
