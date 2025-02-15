@@ -11,6 +11,7 @@ import requests
 from meta_prompt import *
 from google.genai import types
 from fine_tune_prompt import *
+from agent_prompt import *
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -48,13 +49,13 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["Fine-Tune Prompt", "Run Prompt", "Owl"])
+tab1, tab2, tab3 = st.tabs(["Fine-Tune Prompt", "Run Prompt", "Agent Prompt"])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
 with tab1:
     
-    def system_prompt(user_input):
+    def fine_tune_prompt(user_input):
         
         prompt= supercharge_prompt
         
@@ -82,7 +83,7 @@ with tab1:
         if st.form_submit_button('Fine-Tune Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
                 with st.spinner('Generating prompts...'):
-                    execution_result = system_prompt(prompt)
+                    execution_result = fine_tune_prompt(prompt)
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
@@ -110,3 +111,38 @@ with tab2:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')                
+
+with tab3:
+    
+    def create_agent_prompt(user_input):
+        
+        prompt= agent_prompt
+        
+        # goal="improve the prompt"
+        
+        formatted_prompt = prompt.format(prompt=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='agent-prompt',clear_on_submit=False):
+    #Get the prompt from the user
+        prompt = st.text_area('Enter your prompt:',height=200, key=3,placeholder="")
+        
+        if st.form_submit_button('Agent Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating agent prompt...'):
+                    execution_result = create_agent_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')
