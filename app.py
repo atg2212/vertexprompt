@@ -13,6 +13,8 @@ from google.genai import types
 from fine_tune_prompt import *
 from agent_prompt import *
 from google.genai.types import (GenerateContentConfig,)
+from dare_prompts import *
+
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -50,12 +52,15 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6= st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Fine-Tune Prompt / ",
                                              "Run Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
                                              "Zero to Few / ",
-                                             "Chain of Thought / "])
+                                             "Chain of Thought / ",
+                                             "D.A.R.E Prompting / "
+                                             
+                                             ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
@@ -271,4 +276,77 @@ with tab6:
                     execution_result = chain_of_thought_prompt(prompt)
                 display_result(execution_result)
             else:
-                st.warning('Please enter a prompt before executing.')                                           
+                st.warning('Please enter a prompt before executing.')
+with tab7:
+    
+    def dare_it(query,vision,mission,context):
+        
+        template_prompt= dare_prompt
+        
+        formatted_prompt = template_prompt.format(vision=vision,mission=mission,context=context,prompt=query)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def create_dare_artifacts(user_input):
+        system_prompt ="""
+                        You are a GenAI expert capable of generating solid prompts.
+                        Context: D.A.R.E prompting works by asking the chatbot to remember its mission and vision before answering a question.
+                        This helps to keep the chatbot grounded in reality and prevents it from generating responses that are irrelevant or nonsensical.
+                        D.A.R.E uses vision and mission statements to check if the response complies with them
+        """
+        template_prompt= dare_artifacts_generator
+        formatted_prompt = template_prompt.format(user_input=user_input)
+
+        generation_config = GenerateContentConfig(temperature=temperature,
+                                          top_p=top_p,
+                                          max_output_tokens=max_tokens,
+                                          system_instruction=system_prompt,
+                                          response_modalities = ["TEXT"],
+                                          safety_settings=safety_settings,
+                                    )
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='dare',clear_on_submit=False):        
+        link="https://www.linkedin.com/posts/ram-seshadri-nyc-nj_how-do-you-reduce-hallucinations-ensure-activity-7085123540177285121-THrK/"
+        vision_help="Enter your vision: See help icon for more information about the DARE prompting technique:"
+        vision=st.text_input(vision_help ,placeholder="Marketing assistant",help=link)
+        mission=st.text_input("Enter your mission:", placeholder="Help people plan marketing events",help="")
+        context=st.text_area("Enter your context:",height=68, placeholder="You are a marketing assistant. Be as elaborate as makes sense",help="")
+        prompt=st.text_area("Enter your prompt:",height=68, placeholder="Plan cloud run marketing workshop",help="")
+    
+        if st.form_submit_button('D.A.R.E',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('working on it...'):
+                    dare_result = dare_it(prompt,vision,mission,context)
+                st.text_area('Result', dare_result, height=250, max_chars=None, key=None)
+            else:
+                st.markdown("Please enter a prompt.")   
+help_me=st.checkbox("Help Me Create D.A.R.E Artifacts")
+with st.form(key='dareassist',clear_on_submit=False):
+        
+        if help_me:
+            # st.write('Enter your prompt below and click the button')
+            user_input=st.text_input("Enter your prompt below and click the button:")
+            if st.form_submit_button(' D.A.R.E Artifacts',disabled=not (project_id)  or project_id=="Your Project ID"):
+                if user_input:
+                        with st.spinner('working on it...'):
+                            dare_artifacts_result = create_dare_artifacts(user_input)
+                        st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
+                else:
+                    st.markdown("Please enter a prompt.")                                                                 
