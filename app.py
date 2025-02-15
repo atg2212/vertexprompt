@@ -10,6 +10,7 @@ from system_prompts import *
 import requests
 from meta_prompt import *
 from google.genai import types
+from fine_tune_prompt import *
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -23,8 +24,8 @@ st.set_page_config(
     }
 )
 
-# REGIONS=["me-west1","europe-west4","us-central1","us-west4","us-west1"]
-REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
+# REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
+REGIONS=["us-central1"]
 MODEL_NAMES=['gemini-2.0-flash-001','gemini-2.0-flash-lite-preview-02-05','gemini-2.0-pro-exp-02-05','gemini-1.5-pro-002','gemini-1.5-flash-002']
 
 def get_project_id():
@@ -47,25 +48,26 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-# tab1 = st.tabs(["System Prompt",])
-tab1, tab2, tab3 = st.tabs(["System Prompt", "Run Prompt", "Owl"])
-string3 = "grtyr"
-string="gggr"
+tab1, tab2, tab3 = st.tabs(["Fine-Tune Prompt", "Run Prompt", "Owl"])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
 with tab1:
     
-    def system_prompt(prompt):
-        contents = [
-            prompt,
-            ]
+    def system_prompt(user_input):
+        
+        prompt= supercharge_prompt
+        
+        goal="improve the prompt"
+        
+        formatted_prompt = prompt.format(goal=goal,prompt=user_input)
 
-        responses = llm.generate_content(contents,
-                                  stream=False,)
-
-        # return (responses.text, end="")
-        return(responses.text)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
     
     def display_result(execution_result):
         if execution_result != "":
@@ -73,14 +75,13 @@ with tab1:
         else:
             st.warning('No result to display.')    
 
-    with st.form(key='analysis',clear_on_submit=False):
+    with st.form(key='fine-tune',clear_on_submit=False):
     #Get the prompt from the user
         prompt = st.text_area('Enter your prompt:',height=200, key=33,placeholder="tweet about Israel")
         
-        if st.form_submit_button('System Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+        if st.form_submit_button('Fine-Tune Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
-                with st.spinner('Creating system prompt...'):
-                    # execution_result = system_prompt(prompt)
+                with st.spinner('Generating prompts...'):
                     execution_result = system_prompt(prompt)
                 display_result(execution_result)
             else:
