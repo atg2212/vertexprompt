@@ -3,8 +3,8 @@ import streamlit as st
 from initialization import initialize_llm_vertex
 # from vertexai.preview.vision_models import Image, ImageGenerationModel
 from gptrim import trim
-from prompts import *
-from prompts import SYSTEM_PROMPT
+from system_prompts import *
+from system_prompts import SYSTEM_PROMPT
 from placeholders import *
 from system_prompts import *
 import requests
@@ -14,7 +14,7 @@ from fine_tune_prompt import *
 from agent_prompt import *
 from google.genai.types import (GenerateContentConfig,)
 from dare_prompts import *
-
+from system_prompts import *
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -52,14 +52,15 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8 = st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9 = st.tabs(["Fine-Tune Prompt / ",
                                              "Run Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
                                              "Zero to Few / ",
                                              "Chain of Thought / ",
                                              "D.A.R.E Prompting / ",
-                                             "Compress Prompt / "
+                                             "Compress Prompt / ",
+                                             "System Prompt / "
                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
@@ -422,4 +423,36 @@ with tab8:
                 st.text("Compressed Prompt Length: " + str(len(trimmed_text)))
                 st.text("Reduction %: " + "%.2f" % ((len(prompt) - len(trimmed_text)) / len(prompt) * 100))
             else:
-                st.text("Please enter a prompt")                                                                                      
+                st.text("Please enter a prompt")            
+with tab9:
+    
+    def create_system_prompt(user_input):
+        
+        prompt= SYSTEM_PROMPT
+        
+        formatted_prompt = prompt.format(user_input=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='system-prompt',clear_on_submit=False):
+    #Get the prompt from the user
+        prompt = st.text_area('Enter your prompt:',height=200, key=9,placeholder="")
+        
+        if st.form_submit_button('System Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating system prompt...'):
+                    execution_result = create_system_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')                                                                          
