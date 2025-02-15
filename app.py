@@ -25,7 +25,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get help': 'https://github.com/UriKatsirPrivate/prompt-playground',
+        'Get help': 'https://github.com/UriKatsirPrivate/vertex-prompt-palyground',
         'About': "#### Created by [Uri Katsir](https://www.linkedin.com/in/uri-katsir/)"
     }
 )
@@ -55,16 +55,28 @@ css = '''
 st.markdown(css, unsafe_allow_html=True)
 
 tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune Prompt / ",
-                                             "Run Prompt / ",
+                                             "System Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
+                                             "Run Prompt / ",
                                              "Zero to Few / ",
                                              "Chain of Thought / ",
                                              "D.A.R.E Prompting / ",
                                              "Compress Prompt / ",
-                                             "System Prompt / ",
                                              "Images"
                                              ])
+
+# tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune Prompt / ",
+#                                              "Run Prompt / ",
+#                                              "Agent Prompt / ",
+#                                              "Meta Prompt / ",
+#                                              "Zero to Few / ",
+#                                              "Chain of Thought / ",
+#                                              "D.A.R.E Prompting / ",
+#                                              "Compress Prompt / ",
+#                                              "System Prompt / ",
+#                                              "Images"
+#                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
@@ -156,7 +168,7 @@ with tab1:
                       st.text_area(label="Improved prompt:",value=execution_result,height=400, key=104)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab2:
+with tab5:
     
     def run_prompt(prompt):
         response = client.models.generate_content(model=model_name, contents=prompt)
@@ -231,7 +243,8 @@ with tab4:
 
     with st.form(key='metaprompt',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=4,placeholder="")
+        link="https://meta-prompting.github.io/"
+        prompt = st.text_area('Enter your prompt:',height=200, key=4,help=link)
         
         if st.form_submit_button('Meta-Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -243,7 +256,7 @@ with tab4:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')     
-with tab5:
+with tab6:
     
     def zero_to_few_prompt(user_input):
         system_prompt ="""
@@ -289,7 +302,7 @@ with tab5:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab6:
+with tab7:
     
     def chain_of_thought_prompt(user_input):
         system_prompt ="""
@@ -335,7 +348,7 @@ with tab6:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab7:
+with tab8:
     
     def dare_it(query,vision,mission,context):
         
@@ -408,7 +421,7 @@ with tab7:
                             st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
                     else:
                         st.markdown("Please enter a prompt.")   
-with tab8:
+with tab9:
     
     with st.form(key='compressprompt'):
         prompt = st.text_area("Enter Prompt:",height=200,placeholder="")
@@ -427,7 +440,7 @@ with tab8:
                 st.text("Reduction %: " + "%.2f" % ((len(prompt) - len(trimmed_text)) / len(prompt) * 100))
             else:
                 st.text("Please enter a prompt")            
-with tab9:
+with tab2:
     
     def create_system_prompt(user_input):
         
