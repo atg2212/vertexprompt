@@ -50,7 +50,12 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5= st.tabs(["Fine-Tune Prompt / ", "Run Prompt / ", "Agent Prompt / ","Meta Prompt / ","Zero to Few / "])
+tab1, tab2, tab3, tab4, tab5, tab6= st.tabs(["Fine-Tune Prompt / ",
+                                             "Run Prompt / ",
+                                             "Agent Prompt / ",
+                                             "Meta Prompt / ",
+                                             "Zero to Few / ",
+                                             "Chain of Thought / "])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
@@ -220,4 +225,50 @@ with tab5:
                     execution_result = zero_to_few_prompt(prompt)
                 display_result(execution_result)
             else:
-                st.warning('Please enter a prompt before executing.')                           
+                st.warning('Please enter a prompt before executing.')
+with tab6:
+    
+    def chain_of_thought_prompt(user_input):
+        system_prompt ="""
+                        You are an assistant designed to convert a prompt into a chain of thought prompt.
+        """
+
+
+        prompt= """The prompt is: '{prompt}'. Please convert it into a chain of thought prompt.
+                    Always append 'Let's think step by step.' to the prompt.
+                """
+        
+        formatted_prompt = prompt.format(prompt=user_input)
+
+        generation_config = GenerateContentConfig(temperature=temperature,
+                                          top_p=top_p,
+                                          max_output_tokens=max_tokens,
+                                          system_instruction=system_prompt,
+                                          response_modalities = ["TEXT"],
+                                          safety_settings=safety_settings,
+                                    )
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='chain-of-thought',clear_on_submit=False):
+    #Get the prompt from the user
+        prompt = st.text_area('Enter your prompt:',height=200, key=6,placeholder="")
+        
+        if st.form_submit_button('Chain of thought',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating Chain of thought prompt...'):
+                    execution_result = chain_of_thought_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')                                           
