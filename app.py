@@ -36,7 +36,7 @@ def get_project_id():
     return "landing-zone-demo-341118"
 
 project_id=get_project_id()
-st.sidebar.write("Project ID: ",f"{project_id}") 
+# st.sidebar.write("Project ID: ",f"{project_id}") 
 region=st.sidebar.selectbox("Region",REGIONS)
 model_name = st.sidebar.selectbox('Model Name',MODEL_NAMES)
 max_tokens = st.sidebar.slider('Output Token Limit',min_value=1,max_value=8192,step=100,value=8192)
@@ -349,4 +349,23 @@ with tab7:
                                 dare_artifacts_result = create_dare_artifacts(user_input)
                             st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
                     else:
-                        st.markdown("Please enter a prompt.")                                                                 
+                        st.markdown("Please enter a prompt.")   
+with tab8:
+    
+    with st.form(key='compressprompt'):
+        prompt = st.text_area("Enter Prompt:",height=200,placeholder="")
+        submit_button = st.form_submit_button(label='Submit Prompt',disabled=not (project_id)  or project_id=="Your Project ID")
+        
+        if submit_button:
+            with st.spinner('Working on it...'):
+                trimmed_text = trim(prompt)
+                # trimmed_text = "trim(prompt)"
+                    
+            # Display the trimmed prompt
+            if prompt is not None and len(str(trimmed_text)) > 0:
+                st.text_area(label="Compressed Prompt",value=trimmed_text, height=250, max_chars=None, key=None)
+                st.text("Original Prompt Length: " + str(len(prompt)))
+                st.text("Compressed Prompt Length: " + str(len(trimmed_text)))
+                st.text("Reduction %: " + "%.2f" % ((len(prompt) - len(trimmed_text)) / len(prompt) * 100))
+            else:
+                st.text("Please enter a prompt")                                                                                      
