@@ -66,7 +66,7 @@ client, safety_settings,generation_config = initialize_llm_vertex(project_id,reg
 
 with tab1:
     
-    def fine_tune_prompt(user_input):
+    def create_supercharge_prompt(user_input):
         
         prompt= supercharge_prompt
         
@@ -80,12 +80,51 @@ with tab1:
             config=generation_config,
             )
         return(response.text)
-    
-    def display_result(execution_result):
-        if execution_result != "":
-            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+    def create_refine_prompt(user_input):
+        
+        prompt= refine_prompt
+        
+        goal="improve the prompt"
+        
+        formatted_prompt = prompt.format(task=goal,lazy_prompt=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    def create_improved_prompt(user_input):
+        
+        prompt= prompt_improver
+        
+              
+        formatted_prompt = prompt.format(text=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    def create_make_prompt(prompt_version,user_input):
+        
+        if prompt_version==1:
+            prompt= make_prompt
         else:
-            st.warning('No result to display.')    
+            prompt=make_prompt_v2
+
+      
+        goal="improve the prompt"
+        
+        formatted_prompt = prompt.format(task=goal,lazy_prompt=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
 
     with st.form(key='fine-tune',clear_on_submit=False):
     #Get the prompt from the user
@@ -94,8 +133,23 @@ with tab1:
         if st.form_submit_button('Fine-Tune Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
                 with st.spinner('Generating prompts...'):
-                    execution_result = fine_tune_prompt(prompt)
-                display_result(execution_result)
+                    col1, col2= st.columns(2,gap="medium")
+                    with col1:
+                        execution_result = create_supercharge_prompt(prompt)
+                        st.text_area(label="Supercharged prompt:",value=execution_result,height=400, key=100)
+
+                        execution_result = create_make_prompt(1,prompt)
+                        st.text_area(label="Made prompt:",value=execution_result,height=400, key=101)
+
+                        execution_result = create_make_prompt(1,prompt)
+                        st.text_area(label="Made prompt v2:",value=execution_result,height=400, key=102)
+                    
+                    with col2:
+                      execution_result = create_refine_prompt(prompt)
+                      st.text_area(label="Refined prompt:",value=execution_result,height=400, key=103)
+
+                      execution_result = create_improved_prompt(prompt)
+                      st.text_area(label="Improved prompt:",value=execution_result,height=400, key=104)
             else:
                 st.warning('Please enter a prompt before executing.')
 with tab2:
