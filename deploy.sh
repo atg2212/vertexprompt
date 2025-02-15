@@ -13,7 +13,7 @@ gcloud services enable run.googleapis.com --project $GOOGLE_CLOUD_PROJECT --asyn
 gcloud services enable aiplatform.googleapis.com --project $GOOGLE_CLOUD_PROJECT --async
 
 # Artifact Registry
-gcloud artifacts repositories create $ARTIFACT_REGISTRY_NAME --location=$REGION --repository-format=docker
+# gcloud artifacts repositories create $ARTIFACT_REGISTRY_NAME --location=$REGION --repository-format=docker
 gcloud builds submit --tag $REGION-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/$ARTIFACT_REGISTRY_NAME/$SERVICE_NAME:latest
 
 gcloud run deploy $SERVICE_NAME \
@@ -21,7 +21,7 @@ gcloud run deploy $SERVICE_NAME \
 --platform managed \
 --allow-unauthenticated \
 --region=$REGION \
---ingress=internal-and-cloud-load-balancing \
+--ingress=all \
 --min-instances=0 \
 --concurrency=20 \
 --service-account=$SERVICE_ACCOUNT_EMAIL \
