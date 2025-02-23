@@ -5,7 +5,7 @@ from initialization import initialize_llm_vertex
 from vertexai.preview.vision_models import Image, ImageGenerationModel
 from gptrim import trim
 from system_prompts import *
-from system_prompts import SYSTEM_PROMPT
+from system_prompts import *
 from placeholders import *
 from system_prompts import *
 from meta_prompt import *
@@ -53,10 +53,11 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10 = st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10, tab11 = st.tabs(["Fine-Tune Prompt / ",
                                              "System Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
+                                             "Reasoning Prompt / ",
                                              "Run Prompt / ",
                                              "Zero to Few / ",
                                              "Chain of Thought / ",
@@ -155,7 +156,7 @@ with tab1:
                       st.text_area(label="Improved prompt:",value=execution_result,height=400, key=104)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab5:
+with tab6:
     
     def run_prompt(prompt):
         response = client.models.generate_content(model=model_name, contents=prompt)
@@ -243,7 +244,7 @@ with tab4:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')     
-with tab6:
+with tab7:
     
     def zero_to_few_prompt(user_input):
         system_prompt ="""
@@ -289,7 +290,7 @@ with tab6:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab7:
+with tab8:
     
     def chain_of_thought_prompt(user_input):
         system_prompt ="""
@@ -335,7 +336,7 @@ with tab7:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab8:
+with tab9:
     
     def dare_it(query,vision,mission,context):
         
@@ -408,7 +409,7 @@ with tab8:
                             st.text_area('D.A.R.E Artifacts', dare_artifacts_result, height=250, max_chars=None, key=None)
                     else:
                         st.markdown("Please enter a prompt.")   
-with tab9:
+with tab10:
     
     with st.form(key='compressprompt'):
         prompt = st.text_area("Enter Prompt:",height=200,placeholder="")
@@ -459,7 +460,7 @@ with tab2:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')
-with tab10:
+with tab11:
     def GenerateImagePrompt(user_input):
         system_prompt = GenerateImageSystemPrompt
 
@@ -536,4 +537,51 @@ with tab10:
                         else:
                            st.markdown("No images generated. Prompt was blocked.")     
                 else:
-                    st.markdown("No images generated. Please enter a valid prompt.")                                                                    
+                    st.markdown("No images generated. Please enter a valid prompt.") 
+with tab5:
+    def zero_to_reasoning_prompt(user_input):
+        system_prompt = REASONING_PROMPT  
+
+
+
+        prompt= """the user's input is:{user_input}.
+                    Please generate the optimized prompt.
+
+                Answer:
+                """
+        
+        formatted_prompt = prompt.format(user_input=user_input)
+
+        generation_config = GenerateContentConfig(temperature=temperature,
+                                          top_p=top_p,
+                                          max_output_tokens=max_tokens,
+                                          system_instruction=system_prompt,
+                                          response_modalities = ["TEXT"],
+                                          safety_settings=safety_settings,
+                                    )
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    def display_result(execution_result):
+        if execution_result != "":
+            st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
+        else:
+            st.warning('No result to display.')    
+
+    with st.form(key='reasoning',clear_on_submit=False):
+    #Get the prompt from the user
+        link="https://cloud.google.com/vertex-ai/generative-ai/docs/thinking"
+        prompt = st.text_area('Enter your prompt:',height=200, key=55,placeholder="", help=link)
+        
+        if st.form_submit_button('Reasoning Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating reasoning optimized prompt...'):
+                    execution_result = zero_to_reasoning_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')                                                                   
