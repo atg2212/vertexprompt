@@ -31,7 +31,7 @@ st.set_page_config(
 
 # REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
 REGIONS=["us-central1"]
-MODEL_NAMES=['gemini-2.0-flash-001','gemini-2.0-flash-lite-preview-02-05','gemini-2.0-pro-exp-02-05','gemini-1.5-pro-002','gemini-1.5-flash-002']
+MODEL_NAMES=['gemini-2.0-flash-001','gemini-2.0-flash-lite-001','gemini-2.0-pro-exp-02-05','gemini-1.5-pro-002','gemini-1.5-flash-002']
 
 def get_project_id():
     return "landing-zone-demo-341118"
@@ -132,7 +132,8 @@ with tab1:
 
     with st.form(key='fine-tune',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=33,placeholder="tweet about Israel")
+        desc="Write your prompt below, the service will optimize your prompt:"
+        prompt = st.text_area(desc,height=200, key=33,placeholder="tweet about Israel")
         
         if st.form_submit_button('Fine-Tune Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -205,7 +206,8 @@ with tab3:
 
     with st.form(key='agent-prompt',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=3,placeholder="")
+        desc="Write your prompt below, the service will generate a corresponding agentic prompt:"
+        prompt = st.text_area(desc,height=200, key=3,placeholder="")
         
         if st.form_submit_button('Agent Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -232,7 +234,8 @@ with tab4:
     with st.form(key='metaprompt',clear_on_submit=False):
     #Get the prompt from the user
         link="https://meta-prompting.github.io/"
-        prompt = st.text_area('Enter your prompt:',height=200, key=4,help=link)
+        desc="Write your prompt below, the service will generate a corresponding meta prompt: (See the help icon for more info)"
+        prompt = st.text_area(desc,height=200, key=4,help=link)
         
         if st.form_submit_button('Meta-Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -281,7 +284,9 @@ with tab7:
 
     with st.form(key='zero-to-few',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=5,placeholder="")
+        link="https://www.promptingguide.ai/techniques/fewshot"
+        desc="Write your prompt below, the service will generate a corresponding few shots prompt: (See the help icon for more info)"
+        prompt = st.text_area(desc,height=200, key=5,help=link)
         
         if st.form_submit_button('Zero to few',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -327,7 +332,9 @@ with tab8:
 
     with st.form(key='chain-of-thought',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=6,placeholder="")
+        link="https://www.promptingguide.ai/techniques/cot"
+        desc="Write your prompt below, the service will generate a corresponding chain of thought prompt: (See the help icon for more info)"
+        prompt = st.text_area(desc,height=200, key=6,help=link)
         
         if st.form_submit_button('Chain of thought',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -412,7 +419,8 @@ with tab9:
 with tab10:
     
     with st.form(key='compressprompt'):
-        prompt = st.text_area("Enter Prompt:",height=200,placeholder="")
+        desc="Write your prompt below, the service will compress it:"
+        prompt = st.text_area(desc,height=200,placeholder="")
         submit_button = st.form_submit_button(label='Submit Prompt',disabled=not (project_id)  or project_id=="Your Project ID")
         
         if submit_button:
@@ -451,7 +459,8 @@ with tab2:
 
     with st.form(key='system-prompt',clear_on_submit=False):
     #Get the prompt from the user
-        prompt = st.text_area('Enter your prompt:',height=200, key=9,placeholder="")
+        desc="Write your prompt below, the service will generate a corresponding system prompt:"
+        prompt = st.text_area(desc,height=200, key=9,placeholder="")
         
         if st.form_submit_button('System Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
@@ -576,7 +585,8 @@ with tab5:
     with st.form(key='reasoning',clear_on_submit=False):
     #Get the prompt from the user
         link="https://cloud.google.com/vertex-ai/generative-ai/docs/thinking"
-        prompt = st.text_area('Enter your prompt:',height=200, key=55,placeholder="", help=link)
+        desc="Write your prompt below, the service will generate a corresponding prompt for reasoning models: (See the help icon for more info)"
+        prompt = st.text_area(desc,height=200, key=55,placeholder="", help=link)
         
         if st.form_submit_button('Reasoning Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
             if prompt:
