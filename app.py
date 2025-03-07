@@ -1,8 +1,8 @@
 import os
 import streamlit as st
-import vertexai
+# import vertexai
 from initialization import initialize_llm_vertex
-from vertexai.preview.vision_models import Image, ImageGenerationModel
+# from vertexai.preview.vision_models import Image, ImageGenerationModel
 from gptrim import trim
 from system_prompts import *
 from system_prompts import *
@@ -16,6 +16,8 @@ from google.genai.types import (GenerateContentConfig,)
 from dare_prompts import *
 from system_prompts import *
 from image_prompts import *
+from google import genai
+
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -493,28 +495,29 @@ with tab11:
             config=generation_config,
             )
         return(response.text)
-        
-        
     
-    def GenerateImage(description,num_of_images):
-        try:
-            vertexai.init(project=project_id, location=region)
-
-            model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-002")
-            images = model.generate_images(
+    def GenerateImageNew(description,num_of_images):
+        client = genai.Client(vertexai=True, project=project_id, location=region)
+        images = client.models.generate_images(
             prompt=description,
-            # Optional:
-            number_of_images=num_of_images,
-            # seed=1,
+            model="imagen-3.0-generate-002",
+            config=types.GenerateImagesConfig(
+                number_of_images=num_of_images,
+                # include_rai_reason=True,
+                output_mime_type='image/jpeg',
+                # add_watermark=True,
+                safety_filter_level="BLOCK_ONLY_HIGH",
+                person_generation="allow_adult",
+                aspect_ratio="9:16",  # "1:1" "16:9" "4:3" "3:4"
+                ),
             )
-            return images
-        except:
-            ""
-    def display_images(images):
-        for image in images:
-            image.save(location="./gen-img1.png", include_generation_parameters=True)
-            st.image("./gen-img1.png",use_container_width="auto")
-   
+        return images
+
+    def display_images_new(images):
+        # for image in images:
+        #     st.image(images.generated_images[1].image._pil_image, use_container_width="auto")
+        st.image(images.generated_images[0].image._pil_image, use_container_width="auto")
+        st.image(images.generated_images[1].image._pil_image, use_container_width="auto")
     
     with st.form(key='prompt_magic10',clear_on_submit=False):
         link="https://cloud.google.com/vertex-ai/docs/generative-ai/image/img-gen-prompt-guide"
@@ -540,9 +543,10 @@ with tab11:
             if st.form_submit_button('Generate Image(s)',disabled=not (project_id)  or project_id=="Your Project ID"):
                 if description:
                     with st.spinner('Generating Image(s)...'):
-                        images = GenerateImage(description,num_of_images)
+                        # images = GenerateImage(description,num_of_images)
+                        images = GenerateImageNew(description,num_of_images)
                         if images:
-                            display_images(images)
+                            display_images_new(images)
                         else:
                            st.markdown("No images generated. Prompt was blocked.")     
                 else:
