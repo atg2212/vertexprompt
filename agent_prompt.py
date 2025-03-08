@@ -11,6 +11,8 @@ agent_prompt="""
 </Instructions Structure>
 <Instructions>
 You will be converting a basic prompt into a prompt that can be used with an AI agent.
+Agentic AI prompt is for AI systems that can autonomously pursue goals and complete tasks without direct human supervision,
+Able to learn from interactions, plan, and execute strategies to achieve specified objectives and make decisions based on dynamic environments.
 
 Here is the basic prompt:
 <prompt>
