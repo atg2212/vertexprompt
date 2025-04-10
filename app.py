@@ -33,7 +33,7 @@ st.set_page_config(
 
 # REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
 REGIONS=["us-central1"]
-MODEL_NAMES=['gemini-2.0-flash-001','gemini-2.0-flash-lite-001','gemini-2.0-pro-exp-02-05','gemini-1.5-pro-002','gemini-1.5-flash-002']
+MODEL_NAMES=['gemini-2.0-flash-001','gemini-2.0-flash-lite-001','gemini-2.5-pro-preview-03-25']
 
 def get_project_id():
     return "landing-zone-demo-341118"
