@@ -33,7 +33,7 @@ st.set_page_config(
 
 # REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
 REGIONS=["us-central1"]
-MODEL_NAMES=['gemini-2.5-flash-preview-04-17','gemini-2.5-pro-preview-03-25','gemini-2.0-flash-001','gemini-2.0-flash-lite-001']
+MODEL_NAMES=['gemini-2.5-flash','gemini-2.5-pro']
 
 def get_project_id():
     return "landing-zone-demo-341118"
@@ -42,7 +42,7 @@ project_id=get_project_id()
 # st.sidebar.write("Project ID: ",f"{project_id}") 
 region=st.sidebar.selectbox("Region",REGIONS)
 model_name = st.sidebar.selectbox('Model Name',MODEL_NAMES)
-max_tokens = st.sidebar.slider('Output Token Limit',min_value=1,max_value=8192,step=100,value=8192)
+max_tokens = st.sidebar.slider('Output Token Limit',min_value=1,max_value=65535,step=100,value=65535)
 temperature = st.sidebar.slider('Temperature',min_value=0.0,max_value=2.0,step=0.1,value=1.0)
 top_p = st.sidebar.slider('Top-P',min_value=0.0,max_value=1.0,step=0.1,value=0.8)
 
