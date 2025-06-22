@@ -31,17 +31,21 @@ st.set_page_config(
     }
 )
 
-# REGIONS=["europe-west4","us-central1","us-west4","us-west1"]
-REGIONS=["us-central1"]
+# REGIONS=["us-central1"]
+REGIONS=["global"]
 MODEL_NAMES=['gemini-2.5-flash','gemini-2.5-pro']
 
 def get_project_id():
     return "landing-zone-demo-341118"
 
 project_id=get_project_id()
-# st.sidebar.write("Project ID: ",f"{project_id}") 
-region=st.sidebar.selectbox("Region",REGIONS)
+# st.sidebar.write("Project ID: ",f"{project_id}")
+region=REGIONS[0]
+# st.sidebar.write("Region: ",f"{region}")
+
+# region=st.sidebar.selectbox("Region",REGIONS,label_visibility="collapsed")
 model_name = st.sidebar.selectbox('Model Name',MODEL_NAMES)
+thinking_mode=st.sidebar.text("Thinking Mode: Auto")
 max_tokens = st.sidebar.slider('Output Token Limit',min_value=1,max_value=65535,step=100,value=65535)
 temperature = st.sidebar.slider('Temperature',min_value=0.0,max_value=2.0,step=0.1,value=1.0)
 top_p = st.sidebar.slider('Top-P',min_value=0.0,max_value=1.0,step=0.1,value=0.8)
@@ -72,20 +76,20 @@ client, safety_settings,generation_config = initialize_llm_vertex(project_id,reg
 
 with tab1:
     
-    def create_supercharge_prompt(user_input):
+    # def create_supercharge_prompt(user_input):
         
-        prompt= supercharge_prompt
+    #     prompt= supercharge_prompt
         
-        goal="improve the prompt"
+    #     goal="improve the prompt"
         
-        formatted_prompt = prompt.format(goal=goal,prompt=user_input)
+    #     formatted_prompt = prompt.format(goal=goal,prompt=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+    #     response = client.models.generate_content(
+    #         model=model_name,
+    #         contents=formatted_prompt,
+    #         config=generation_config,
+    #         )
+    #     return(response.text)
     def create_refine_prompt(user_input):
         
         prompt= refine_prompt
@@ -142,21 +146,21 @@ with tab1:
                 with st.spinner('Generating prompts...'):
                     col1, col2= st.columns(2,gap="medium")
                     with col1:
-                        execution_result = create_supercharge_prompt(prompt)
-                        st.text_area(label="Supercharged prompt:",value=execution_result,height=400, key=100)
+                        # execution_result = create_supercharge_prompt(prompt)
+                        # st.text_area(label="Supercharged prompt:",value=execution_result,height=400, key=100)
 
                         execution_result = create_make_prompt(1,prompt)
-                        st.text_area(label="Made prompt:",value=execution_result,height=400, key=101)
+                        st.text_area(label="Prompt-1:",value=execution_result,height=400, key=101)
 
                         execution_result = create_make_prompt(1,prompt)
-                        st.text_area(label="Made prompt v2:",value=execution_result,height=400, key=102)
+                        st.text_area(label="Prompt-2:",value=execution_result,height=400, key=102)
                     
                     with col2:
                       execution_result = create_refine_prompt(prompt)
-                      st.text_area(label="Refined prompt:",value=execution_result,height=400, key=103)
+                      st.text_area(label="Prompt-3:",value=execution_result,height=400, key=103)
 
                       execution_result = create_improved_prompt(prompt)
-                      st.text_area(label="Improved prompt:",value=execution_result,height=400, key=104)
+                      st.text_area(label="Prompt-4:",value=execution_result,height=400, key=104)
             else:
                 st.warning('Please enter a prompt before executing.')
 with tab6:
