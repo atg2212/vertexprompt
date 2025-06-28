@@ -16,6 +16,7 @@ from google.genai.types import (GenerateContentConfig,)
 from dare_prompts import *
 from system_prompts import *
 from image_prompts import *
+from video_prompt import *
 from google import genai
 
 
@@ -59,7 +60,7 @@ css = '''
 '''
 st.markdown(css, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10, tab11 = st.tabs(["Fine-Tune Prompt / ",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10, tab11,tab12 = st.tabs(["Fine-Tune Prompt / ",
                                              "System Prompt / ",
                                              "Agent Prompt / ",
                                              "Meta Prompt / ",
@@ -69,7 +70,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10, tab11 = st.tabs(["Fin
                                              "Chain of Thought / ",
                                              "D.A.R.E Prompting / ",
                                              "Compress Prompt / ",
-                                             "Images"
+                                             "Images / ",
+                                             "Veo Prompt / "
                                              ])
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
@@ -603,3 +605,31 @@ with tab5:
                 display_result(execution_result)
             else:
                 st.warning('Please enter a prompt before executing.')                                                                   
+
+with tab12:
+    def create_video_prompt(user_input):
+        
+        prompt= video_prompt
+                      
+        formatted_prompt = prompt.format(user_idea=user_input)
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=formatted_prompt,
+            config=generation_config,
+            )
+        return(response.text)
+    
+    with st.form(key='video-prompt',clear_on_submit=False):
+    #Get the prompt from the user
+        # link="https://cloud.google.com/vertex-ai/generative-ai/docs/thinking"
+        desc="Write your prompt below, the service will generate a corresponding veo prompt"
+        prompt = st.text_area(desc,height=200, key=551,placeholder="")
+        
+        if st.form_submit_button('Veo Prompt',disabled=not (project_id)  or project_id=="Your Project ID"):
+            if prompt:
+                with st.spinner('Generating optimized veo prompt...'):
+                    execution_result = create_video_prompt(prompt)
+                display_result(execution_result)
+            else:
+                st.warning('Please enter a prompt before executing.')
