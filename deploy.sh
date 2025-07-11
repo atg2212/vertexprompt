@@ -21,7 +21,7 @@
 # --- Configuration Variables ---
 
 # Replace with your Google Cloud Project ID
-PROJECT_ID="landing-zone-demo-341118"
+PROJECT_ID="genai-test-391111"
 
 # Replace with your desired Google Cloud region
 REGION="me-west1"
@@ -36,7 +36,7 @@ IMAGE_NAME="vertex-prompt-playground"
 SERVICE_NAME="vertex-prompt-playground"
 
 # Replace with your desired Cloud Run service account
-SERVICE_ACCOUNT_EMAIL="experts-hub-demo@landing-zone-demo-341118.iam.gserviceaccount.com"
+SERVICE_ACCOUNT_EMAIL="prompt-optimizer-cloud-run@genai-test-391111.iam.gserviceaccount.com"
 
 # --- Script Start ---
 
@@ -96,7 +96,7 @@ gcloud run deploy $SERVICE_NAME \
   --platform=managed \
   --region=$REGION \
   --allow-unauthenticated \
-  --ingress=internal-and-cloud-load-balancing \
+  --ingress=all \
   --min-instances=0 \
   --concurrency=20 \
   --service-account=$SERVICE_ACCOUNT_EMAIL \

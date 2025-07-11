@@ -18,7 +18,8 @@ from system_prompts import *
 from image_prompts import *
 from video_prompt import *
 from google import genai
-
+import requests
+import google.auth
 
 # https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(
@@ -34,10 +35,11 @@ st.set_page_config(
 
 # REGIONS=["us-central1"]
 REGIONS=["global"]
-MODEL_NAMES=['gemini-2.5-flash','gemini-2.5-pro']
-
+#MODEL_NAMES=['gemini-2.5-flash','gemini-2.5-pro']
+# atg2212/vertexprompt/vertexprompt-5e0ddd4ee7626e92f37238811f8afb8d0e6a1d29/app.py
+MODEL_NAMES=['gemini-2.5-flash','gemini-2.5-pro', 'claude-opus-4']
 def get_project_id():
-    return "landing-zone-demo-341118"
+    return "genai-test-391111"
 
 project_id=get_project_id()
 # st.sidebar.write("Project ID: ",f"{project_id}")
@@ -76,6 +78,75 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7,tab8,tab9, tab10, tab11,tab12 = st.tabs
 
 client, safety_settings,generation_config = initialize_llm_vertex(project_id,region,model_name,max_tokens,temperature,top_p)
 
+def call_claude_model(prompt_text, model_name, project_id):
+    """
+    Sends a prompt to the specified Claude model on Vertex AI using a direct HTTP request.
+    """
+    # Get default credentials and the access token
+    credentials, _ = google.auth.default()
+    auth_req = google.auth.transport.requests.Request()
+    credentials.refresh(auth_req)
+    access_token = credentials.token
+
+    # Define the endpoint details based on your curl command
+    claude_region = "us-east5" # As specified in your ENDPOINT
+    endpoint = f"https://{claude_region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{claude_region}/publishers/anthropic/models/{model_name}:rawPredict"
+
+    # Prepare the request payload, mirroring your request.json
+    payload = {
+        "anthropic_version": "vertex-2023-10-16",
+        "max_tokens": 32000, # From your latest request.json
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt_text
+            }
+        ]
+    }
+
+    # Set the headers
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json; charset=utf-8",
+    }
+
+    # Make the POST request
+    response = requests.post(endpoint, headers=headers, json=payload)
+    
+    # Check for errors
+    if response.status_code != 200:
+        raise Exception(f"Request failed with status {response.status_code}: {response.text}")
+
+    # Extract the generated text from the response
+    response_json = response.json()
+    return response_json.get("content", [{}])[0].get("text", "No content found in response.")
+
+def generate_content_with_model(prompt_text, model_name, project_id, client, generation_config=None):
+    """
+    A generic function to call the appropriate model (Gemini or Claude).
+    It checks the model name and routes the request accordingly.
+    """
+    if 'claude' in model_name:
+        try:
+            # Use the direct HTTP request for Claude models
+            return call_claude_model(prompt_text, model_name, project_id)
+        except Exception as e:
+            st.error(f"Error calling Claude model: {e}")
+            return f"An error occurred: {e}"
+    else:
+        # Use the genai client for Gemini models
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt_text,
+                config=generation_config,
+            )
+            return response.text
+        except Exception as e:
+            st.error(f"Error calling Gemini model: {e}")
+            # The error message from the SDK is often informative
+            return f"An error occurred: {e}"
+
 with tab1:
     
     # def create_supercharge_prompt(user_input):
@@ -100,12 +171,10 @@ with tab1:
         
         formatted_prompt = prompt.format(task=goal,lazy_prompt=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
+
     def create_improved_prompt(user_input):
         
         prompt= prompt_improver
@@ -113,12 +182,10 @@ with tab1:
               
         formatted_prompt = prompt.format(text=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
+
     def create_make_prompt(prompt_version,user_input):
         
         if prompt_version==1:
@@ -126,17 +193,13 @@ with tab1:
         else:
             prompt=make_prompt_v2
 
-      
         goal="improve the prompt"
         
         formatted_prompt = prompt.format(task=goal,lazy_prompt=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
 
     with st.form(key='fine-tune',clear_on_submit=False):
     #Get the prompt from the user
@@ -167,11 +230,13 @@ with tab1:
                 st.warning('Please enter a prompt before executing.')
 with tab6:
     
+    # adding claude model s
     def run_prompt(prompt):
-        response = client.models.generate_content(model=model_name, contents=prompt)
-        return response.text 
-
-
+        # This function now simply wraps the generic model caller
+        return generate_content_with_model(
+            prompt, model_name, project_id, client, generation_config
+        )
+    
     def display_result(execution_result):
         if execution_result != "":
             st.text_area(label="Execution Result:",value=execution_result,height=400, key=50)
@@ -199,12 +264,9 @@ with tab3:
         
         formatted_prompt = prompt.format(prompt=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -226,12 +288,9 @@ with tab3:
                 st.warning('Please enter a prompt before executing.')
 with tab4:
     def create_meta_prompt(user_input):
-        response = client.models.generate_content(
-            model=model_name,
-            contents=user_input,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            user_input, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -277,12 +336,9 @@ with tab7:
                                           safety_settings=safety_settings,
                                     )
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -325,12 +381,9 @@ with tab8:
                                           safety_settings=safety_settings,
                                     )
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -359,12 +412,9 @@ with tab9:
         
         formatted_prompt = template_prompt.format(vision=vision,mission=mission,context=context,prompt=query)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def create_dare_artifacts(user_input):
         system_prompt ="""
@@ -383,12 +433,9 @@ with tab9:
                                           response_modalities = ["TEXT"],
                                           safety_settings=safety_settings,
                                     )
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -452,12 +499,9 @@ with tab2:
         
         formatted_prompt = prompt.format(user_input=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -495,12 +539,9 @@ with tab11:
                                           safety_settings=safety_settings,
                                     )
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def GenerateImageNew(description,num_of_images):
         client = genai.Client(vertexai=True, project=project_id, location=region)
@@ -579,12 +620,9 @@ with tab5:
                                           safety_settings=safety_settings,
                                     )
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     def display_result(execution_result):
         if execution_result != "":
@@ -613,12 +651,9 @@ with tab12:
                       
         formatted_prompt = prompt.format(user_idea=user_input)
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=formatted_prompt,
-            config=generation_config,
-            )
-        return(response.text)
+        return generate_content_with_model(
+            formatted_prompt, model_name, project_id, client, generation_config
+        )
     
     with st.form(key='video-prompt',clear_on_submit=False):
     #Get the prompt from the user
